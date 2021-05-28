@@ -18,11 +18,10 @@ import java.util.PriorityQueue;
 @Component
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
+    private static final String ASKS_PREFIX = "Best Asks: ";
 
     @Value("${top.orders.limit}")
     private Integer TOP_ORDERS_LIMIT;
-
-    private PriorityQueue<Quote> asksQueue;
 
     private final TopOrdersFinder topOrdersFinder;
 
@@ -33,14 +32,13 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     @Override
     public String topOrders(String symbol, String timestamp) {
         log.info("Processing top asks for symbol: {} at timestamp: {}", symbol, timestamp);
-        if (asksQueue == null) {
-            asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
+
+        PriorityQueue<Quote> asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
                     Comparator.comparing(Quote::getAskPrice).thenComparing(Quote::getStartTime));
-        }
 
         List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, symbol, timestamp);
 
-        return "Best Asks: " + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
+        return ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
     }
 
     @Override

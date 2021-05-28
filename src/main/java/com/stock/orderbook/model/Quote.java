@@ -1,5 +1,6 @@
 package com.stock.orderbook.model;
 
+import com.stock.orderbook.utils.OutputFormatter;
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,11 +20,11 @@ public class Quote {
     private final String sipfeed;
 
     public String askOutputFormat() {
-        return this.askPrice + " (" + this.askQuantity + ")";
+        return OutputFormatter.formatPrice(this.askPrice) + " (" + this.askQuantity + ")";
     }
 
     public String bidOutputFormat() {
-        return this.bidPrice + " (" + this.bidQuantity + ")";
+        return OutputFormatter.formatPrice(this.bidPrice) + " (" + this.bidQuantity + ")";
     }
 
     public Double getNegativeBidPrice() {

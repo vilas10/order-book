@@ -4,12 +4,10 @@ import com.stock.orderbook.model.Quote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
 @Component
 public class TopOrdersFinder {
@@ -20,13 +18,19 @@ public class TopOrdersFinder {
 
     private final Map<String, List<Quote>> symbolToQuotesMap;
 
-    public TopOrdersFinder( Map<String, List<Quote>> symbolToQuotesMap) {
+    public TopOrdersFinder(Map<String, List<Quote>> symbolToQuotesMap) {
         this.symbolToQuotesMap = symbolToQuotesMap;
     }
 
-    public List<Quote> findTopOrders(PriorityQueue<Quote> ordersQueue, String symbol, String timestamp) {
-        log.info("Processing top orders for symbol: {} at timestamp: {}", symbol, timestamp);
+    @Bean
+    public Map<String, PriorityQueue<Quote>> asksPerMinuteMap() {
+        log.info("Building Asks Per Minute Map");
 
+        return new HashMap<>();
+    }
+
+    public List<Quote> findTopOrders(PriorityQueue<Quote> ordersQueue, String symbol, String timestamp) {
+        log.info("Finding top orders for symbol: {} at timestamp: {}", symbol, timestamp);
         updateOrdersQueue(ordersQueue, symbol, timestamp);
 
         return getTopOrders(ordersQueue);

@@ -1,13 +1,16 @@
 # Stock Order Book
+
 This is an Order Book implementation in SpringBoot.
 
 ## Development Environment
+
 - SpringBoot 2.5.0
 - Java 11.0.11
 - IntelliJ IDEA 2021
-- Maven
+- Maven 3.8.1
 
 ## Running the Application
+
 ```
 1. Unzip order-book.zip
 2a. Download the quotes zip file from https://github.com/Nasdaq/hack/blob/master/software-engineering-interview/quotes_2021-02-18.csv.zip
@@ -27,3 +30,28 @@ Best Bids: 129.13 (200); 128.74 (200); 128.73 (100); 128.73 (100); 128.73 (400)
 Best Asks: 128.61 (200); 128.61 (5100); 128.61 (300); 128.62 (500); 128.62 (600)
 ```
 
+## Assumptions/Considerations
+
+1. The data has information from different market centers. For providing the top bids/asks, all the data is consolidated
+   for each symbol.
+2. For calculating top bids/asks,
+    - the quotes whose start times are less/older than the input timestamp are only considered.
+    - the quotes whose end times are less/older than the input timestamp are discarded.
+
+## Other Design Considerations
+
+### 1. On Demand (Lazy) Data Loading
+
+In the current implementation, the provided input file is loaded into memory for faster access. If the data is too
+large, then data could be loaded on request from user for top bids/asks. Drawback of this approach is that user might
+get a delayed response.
+
+## Runtimes
+
+### Approach 1: Loading quotes on demand
+
+| Symbol    | Timestamp                  | Avg. Execution Time (ms)  |
+| --------- |:--------------------------:| -------------------------:|
+| AAPL      | 2021-02-18T10:10:00.000Z   | 66                        |
+| AAPL      | 2021-02-18T10:20:00.000Z   | 122                       |
+| AAPL      | 2021-02-18T10:30:00.000Z   | 180                       |

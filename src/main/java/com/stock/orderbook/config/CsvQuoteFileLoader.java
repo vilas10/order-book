@@ -1,6 +1,7 @@
 package com.stock.orderbook.config;
 
 import com.stock.orderbook.model.Quote;
+import com.stock.orderbook.model.Symbol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,6 @@ import org.springframework.core.io.Resource;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -26,15 +26,34 @@ public class CsvQuoteFileLoader {
     @Value("${quotes.input.csv.file.delimiter}")
     private String CSV_FILE_DELIMITER;
 
+    private final Map<String, List<Quote>> symbolToQuotesMap;
+
+    public CsvQuoteFileLoader(Map<String, List<Quote>> symbolToQuotesMap) {
+        this.symbolToQuotesMap = symbolToQuotesMap;
+    }
+
     @Bean
     public Map<String, List<Quote>> symbolToQuotesMap() throws Exception {
         String csvFilePath = Paths.get(csvFileResource.getURI()).toString();
         log.info("Parsing CSV Quotes File: " + csvFilePath);
+
         return readCsvFile(csvFilePath);
     }
 
+    @Bean
+    public Map<String, Symbol> symbolMap() {
+        Map<String, Symbol> symbolMap = this.symbolToQuotesMap
+                .entrySet()
+                .stream()
+                .map(mapToSymbol)
+                .collect(Collectors.toMap(Symbol::getSymbol, Function.identity()));
+
+//        symbolMap.forEach(this::buildAsksPerMinuteMap);
+        return symbolMap;
+    }
+
     private Map<String, List<Quote>> readCsvFile(String csvFilePath) throws Exception {
-        Map<String, List<Quote>> symbolToQuotesMap = new HashMap<>();
+        Map<String, List<Quote>> symbolToQuotesMap;
 
         try {
             File csvFile = new File(csvFilePath);
@@ -61,8 +80,12 @@ public class CsvQuoteFileLoader {
 
         log.info("Successfully parsed and loaded CSV quotes file");
         log.info("Total Symbols Found: {}", symbolToQuotesMap.size());
-        log.info("Total Quotes Loaded: {}", symbolToQuotesMap.values().stream().mapToInt(List::size).sum());
+        log.info("Total Quotes Loaded: {}", sumOfLengthsOfMapOfLists(symbolToQuotesMap));
         return symbolToQuotesMap;
+    }
+
+    private int sumOfLengthsOfMapOfLists(Map<String, List<Quote>> mapOfLists) {
+        return mapOfLists.values().stream().mapToInt(List::size).sum();
     }
 
     private final Function<String, Quote> mapCsvLineToQuote = (line) -> {
@@ -82,4 +105,15 @@ public class CsvQuoteFileLoader {
                 .sipfeed(cols[10])
                 .build();
     };
+
+    private final Function<Map.Entry<String, List<Quote>>, Symbol> mapToSymbol = (entry) -> Symbol.builder()
+            .symbol(entry.getKey())
+            .quotes(entry.getValue())
+            .build();
+
+//    private void buildAsksPerMinuteMap(String symbolName, Symbol symbol) {
+//        List<Quote> quotes = symbol.getQuotes();
+//        Map<String, PriorityQueue<Quote>> asksPerMinuteMap = new LinkedHashMap<>();
+//
+//    }
 }
