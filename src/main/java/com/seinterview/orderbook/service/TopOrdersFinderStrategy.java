@@ -8,6 +8,6 @@ import java.util.List;
 
 @Service
 public interface TopOrdersFinderStrategy {
-    List<Quote> topOrders(String symbol, String timestamp);
+    String topOrders(String symbol, String timestamp);
     TopOrdersFinderStrategyType getTopOrderFinderStrategyType();
 }

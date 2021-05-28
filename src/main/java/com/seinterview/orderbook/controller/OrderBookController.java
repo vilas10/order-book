@@ -1,7 +1,8 @@
 package com.seinterview.orderbook.controller;
 
+import com.seinterview.orderbook.config.TopOrderFinderStrategyFactory;
 import com.seinterview.orderbook.model.OrderBookRequest;
-import com.seinterview.orderbook.service.OrderBookService;
+import com.seinterview.orderbook.model.TopOrdersFinderStrategyType;
 import com.seinterview.orderbook.service.RequestValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderBookController {
 
     @Autowired
-    OrderBookService orderBookService;
+    private TopOrderFinderStrategyFactory topOrderFinderStrategyFactory;
 
     @Autowired
     RequestValidator requestValidator;
@@ -27,8 +28,15 @@ public class OrderBookController {
         if (!validatorResponse.isEmpty()) {
             return validatorResponse;
         }
-        return orderBookService.getTopBids(request.getSymbol(), request.getTimestamp())
-                + "\n"
-                + orderBookService.getTopAsks(request.getSymbol(), request.getTimestamp());
+
+        String topBids = topOrderFinderStrategyFactory
+                .findStrategy(TopOrdersFinderStrategyType.BIDS)
+                .topOrders(request.getSymbol(), request.getTimestamp());
+
+        String topAsks = topOrderFinderStrategyFactory
+                .findStrategy(TopOrdersFinderStrategyType.ASKS)
+                .topOrders(request.getSymbol(), request.getTimestamp());
+
+        return topBids + "\n" + topAsks;
     }
 }

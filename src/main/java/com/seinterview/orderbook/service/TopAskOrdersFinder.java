@@ -7,13 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Asks
  */
-@Component
+@Service
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
 
@@ -26,13 +28,19 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private PriorityQueue<Quote> asksQueue;
 
     @Override
-    public List<Quote> topOrders(String symbol, String timestamp) {
+    public String topOrders(String symbol, String timestamp) {
         log.info("Processing top asks for symbol: {} at timestamp: {}", symbol, timestamp);
         if (asksQueue == null) {
             asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
                     Comparator.comparing(Quote::getAskPrice).thenComparing(Quote::getStartTime));
         }
-        return topOrdersFinder.findTopOrders(asksQueue, symbol, timestamp);
+
+        List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, symbol, timestamp);
+
+        String topAsksString = topAsks.stream().map(Quote::askOutputFormat)
+                .collect(Collectors.joining("; "));
+
+        return "Best Asks: " + topAsksString;
     }
 
     @Override
