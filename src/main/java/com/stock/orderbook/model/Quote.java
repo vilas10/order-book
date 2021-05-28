@@ -1,11 +1,7 @@
-package com.seinterview.orderbook.model;
+package com.stock.orderbook.model;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
-
-import java.sql.Timestamp;
 
 @Data
 @Builder

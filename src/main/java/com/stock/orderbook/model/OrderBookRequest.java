@@ -1,4 +1,4 @@
-package com.seinterview.orderbook.model;
+package com.stock.orderbook.model;
 
 import lombok.Getter;
 

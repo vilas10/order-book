@@ -1,4 +1,4 @@
-package com.seinterview.orderbook.service;
+package com.stock.orderbook.service;
 
 import org.springframework.stereotype.Service;
 

@@ -1,9 +1,8 @@
-package com.seinterview.orderbook.service;
+package com.stock.orderbook.service;
 
-import com.seinterview.orderbook.model.Quote;
+import com.stock.orderbook.model.Quote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,8 +12,11 @@ import java.util.Map;
 public class RequestValidatorImpl implements RequestValidator {
     private static final Logger log = LoggerFactory.getLogger(RequestValidatorImpl.class);
 
-    @Autowired
-    private Map<String, List<Quote>> symbolToQuotesMap;
+    private final Map<String, List<Quote>> symbolToQuotesMap;
+
+    public RequestValidatorImpl( Map<String, List<Quote>> symbolToQuotesMap) {
+        this.symbolToQuotesMap = symbolToQuotesMap;
+    }
 
     @Override
     public String validateSymbol(String symbol) {

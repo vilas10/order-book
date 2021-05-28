@@ -1,10 +1,11 @@
 # Stock Order Book
-This is a Order Book implementation in SpringBoot.
+This is an Order Book implementation in SpringBoot.
 
 ## Development Environment
 - SpringBoot 2.5.0
 - Java 11.0.11
 - IntelliJ IDEA 2021
+- Maven
 
 ## Running the Application
 ```
@@ -19,10 +20,10 @@ mvn sping-boot:run (for Mac)
 Example:
 
 Request:
-curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:01:33.522Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/orderbook/
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:10:10.522Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/orderbook/
 
 Response:
-Best Bids: 129.38 (100); 129.37 (400); 129.37 (1100); 129.37 (1200); 129.37 (2600)
-Best Asks: 0.0 (0); 129.39 (100); 129.39 (400); 129.39 (800); 129.39 (500)
+Best Bids: 129.13 (200); 128.74 (200); 128.73 (100); 128.73 (100); 128.73 (400)
+Best Asks: 128.61 (200); 128.61 (5100); 128.61 (300); 128.62 (500); 128.62 (600)
 ```
 

@@ -1,28 +1,31 @@
-package com.seinterview.orderbook.service;
+package com.stock.orderbook.service;
 
-import com.seinterview.orderbook.model.Quote;
-import com.seinterview.orderbook.model.TopOrdersFinderStrategyType;
+import com.stock.orderbook.model.Quote;
+import com.stock.orderbook.model.TopOrdersFinderStrategyType;
+import com.stock.orderbook.utils.OutputFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
 
-@Service
+@Component
 public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopBidOrdersFinder.class);
-
-    @Autowired
-    private TopOrdersFinder topOrdersFinder;
 
     @Value("${top.orders.limit}")
     private Integer TOP_ORDERS_LIMIT;
 
     private PriorityQueue<Quote> bidsQueue;
+
+    private final TopOrdersFinder topOrdersFinder;
+
+    public TopBidOrdersFinder(TopOrdersFinder topOrdersFinder) {
+        this.topOrdersFinder = topOrdersFinder;
+    }
 
     @Override
     public String topOrders(String symbol, String timestamp) {
@@ -34,10 +37,7 @@ public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
         }
         List<Quote> topBids = topOrdersFinder.findTopOrders(bidsQueue, symbol, timestamp);
 
-        String topBidsString = topBids.stream().map(Quote::bidOutputFormat)
-                .collect(Collectors.joining("; "));
-
-        return "Best Bids: " + topBidsString;
+        return "Best Bids: " + OutputFormatter.toString(topBids, Quote::bidOutputFormat);
     }
 
     @Override

@@ -1,6 +1,6 @@
-package com.seinterview.orderbook.config;
+package com.stock.orderbook.config;
 
-import com.seinterview.orderbook.model.Quote;
+import com.stock.orderbook.model.Quote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +10,6 @@ import org.springframework.core.io.Resource;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class CsvQuoteFileLoader {
         return readCsvFile(csvFilePath);
     }
 
-    private Map<String, List<Quote>> readCsvFile(String csvFilePath) {
+    private Map<String, List<Quote>> readCsvFile(String csvFilePath) throws Exception {
         Map<String, List<Quote>> symbolToQuotesMap = new HashMap<>();
 
         try {
@@ -53,9 +52,11 @@ public class CsvQuoteFileLoader {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             log.error("Exception: CSV File not found {}", e.getMessage());
+            throw e;
         } catch (IOException e) {
             e.printStackTrace();
             log.error("Exception: Issue while parsing CSV File {}", e.getMessage());
+            throw e;
         }
 
         log.info("Successfully parsed and loaded CSV quotes file");

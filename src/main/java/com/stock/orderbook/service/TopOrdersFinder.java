@@ -1,23 +1,28 @@
-package com.seinterview.orderbook.service;
+package com.stock.orderbook.service;
 
-import com.seinterview.orderbook.model.Quote;
+import com.stock.orderbook.model.Quote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 @Component
 public class TopOrdersFinder {
     private static final Logger log = LoggerFactory.getLogger(TopOrdersFinder.class);
 
-    @Autowired
-    private Map<String, List<Quote>> symbolToQuotesMap;
-
     @Value("${top.orders.limit}")
     private Integer TOP_ORDERS_LIMIT;
+
+    private final Map<String, List<Quote>> symbolToQuotesMap;
+
+    public TopOrdersFinder( Map<String, List<Quote>> symbolToQuotesMap) {
+        this.symbolToQuotesMap = symbolToQuotesMap;
+    }
 
     public List<Quote> findTopOrders(PriorityQueue<Quote> ordersQueue, String symbol, String timestamp) {
         log.info("Processing top orders for symbol: {} at timestamp: {}", symbol, timestamp);

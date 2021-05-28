@@ -1,4 +1,4 @@
-package com.seinterview.orderbook;
+package com.stock.orderbook;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

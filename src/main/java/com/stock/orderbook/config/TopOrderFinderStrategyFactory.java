@@ -1,7 +1,7 @@
-package com.seinterview.orderbook.config;
+package com.stock.orderbook.config;
 
-import com.seinterview.orderbook.model.TopOrdersFinderStrategyType;
-import com.seinterview.orderbook.service.TopOrdersFinderStrategy;
+import com.stock.orderbook.model.TopOrdersFinderStrategyType;
+import com.stock.orderbook.service.TopOrdersFinderStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
