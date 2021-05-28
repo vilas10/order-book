@@ -34,7 +34,7 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
         log.info("Processing top asks for symbol: {} at timestamp: {}", symbol, timestamp);
 
         PriorityQueue<Quote> asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
-                    Comparator.comparing(Quote::getAskPrice).thenComparing(Quote::getStartTime));
+                    Comparator.comparing(Quote::getNegativeAskPrice).thenComparing(Quote::getStartTime));
 
         List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, symbol, timestamp);
 

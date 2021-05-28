@@ -48,10 +48,31 @@ get a delayed response.
 
 ## Runtimes
 
-### Approach 1: Loading quotes on demand
+### Approach #1: Loading Quotes On-Demand - Without Priority Queue Capacity limit
+In this approach, ask and bid priority queues does not have a capacity limit.
+
+**Bids Queue** - Max Heap   
+**Asks Queue** - Min Heap
 
 | Symbol    | Timestamp                  | Avg. Execution Time (ms)  |
 | --------- |:--------------------------:| -------------------------:|
 | AAPL      | 2021-02-18T10:10:00.000Z   | 66                        |
 | AAPL      | 2021-02-18T10:20:00.000Z   | 122                       |
 | AAPL      | 2021-02-18T10:30:00.000Z   | 180                       |
+
+### Approach #2: Loading Quotes On-Demand - With Priority Queue Capacity limit
+In this approach, ask and bid priority queues are made sure that size does not
+go beyond the limit 5. Limit is 5 because at the end we only need 5 top bids/asks.
+This implementation makes sure only 5 best bids/asks are always maintained.
+There is little difference in runtimes from Approach #1, possibly becuase there are
+few quotes that are open for long time and hence the queues' size does not grow
+much to affect the runtimes.
+
+**Bids Queue** - Min Heap (Maintained max capacity of 5)  
+**Asks Queue** - Max Heap (Maintained max capacity of 5)
+
+| Symbol    | Timestamp                  | Avg. Execution Time (ms)  |
+| --------- |:--------------------------:| -------------------------:|
+| AAPL      | 2021-02-18T10:10:00.000Z   | 61                        |
+| AAPL      | 2021-02-18T10:20:00.000Z   | 118                       |
+| AAPL      | 2021-02-18T10:30:00.000Z   | 184                       |

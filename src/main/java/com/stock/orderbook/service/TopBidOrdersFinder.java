@@ -31,7 +31,7 @@ public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
         log.info("Processing top bids for symbol: {} at timestamp: {}", symbol, timestamp);
 
         PriorityQueue<Quote> bidsQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
-                    Comparator.comparing(Quote::getNegativeBidPrice).thenComparing(Quote::getStartTime));
+                    Comparator.comparing(Quote::getBidPrice).thenComparing(Quote::getStartTime));
 
         List<Quote> topBids = topOrdersFinder.findTopOrders(bidsQueue, symbol, timestamp);
 

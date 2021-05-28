@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class TopOrdersFinder {
@@ -37,12 +38,12 @@ public class TopOrdersFinder {
     }
 
     private List<Quote> getTopOrders(PriorityQueue<Quote> ordersQueue) {
-        List<Quote> orders = new ArrayList<>();
+        Deque<Quote> orders = new ArrayDeque<>();
         Quote quote;
         while (orders.size() < TOP_ORDERS_LIMIT && (quote = ordersQueue.poll()) != null)
-            orders.add(quote);
+            orders.addFirst(quote);
 
-        return orders;
+        return new ArrayList<>(orders);
     }
 
     private void updateOrdersQueue(PriorityQueue<Quote> ordersQueue, String symbol, String timestamp) {
@@ -55,6 +56,9 @@ public class TopOrdersFinder {
 
             if (q.getEndTime().compareTo(timestamp) >= 0) {
                 ordersQueue.add(q);
+                if (ordersQueue.size() > TOP_ORDERS_LIMIT) {
+                    ordersQueue.poll();
+                }
             }
         }
     }
