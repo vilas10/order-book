@@ -1,13 +1,13 @@
 package com.seinterview.orderbook.model;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.sql.Timestamp;
 
-@ToString
-@Getter
+@Data
 @Builder
 public class Quote {
     private final String symbol;
