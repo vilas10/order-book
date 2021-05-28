@@ -12,7 +12,7 @@ import java.util.*;
 
 @Component
 public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
-    private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
+    private static final Logger log = LoggerFactory.getLogger(TopBidOrdersFinder.class);
 
     @Autowired
     private TopOrdersFinder topOrdersFinder;
