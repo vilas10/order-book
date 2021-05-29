@@ -15,7 +15,6 @@ import java.util.PriorityQueue;
 @Component
 public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopBidOrdersFinder.class);
-    private static final String BIDS_PREFIX = "Best Bids: ";
 
     @Value("${top.orders.limit}")
     private Integer TOP_ORDERS_LIMIT;
@@ -35,7 +34,7 @@ public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
 
         List<Quote> topBids = topOrdersFinder.findTopOrders(bidsQueue, symbol, timestamp);
 
-        return BIDS_PREFIX + OutputFormatter.toString(topBids, Quote::bidOutputFormat);
+        return OutputFormatter.BIDS_PREFIX + OutputFormatter.toString(topBids, Quote::bidOutputFormat);
     }
 
     @Override

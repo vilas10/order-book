@@ -1,7 +1,6 @@
 package com.stock.orderbook.config;
 
 import com.stock.orderbook.model.Quote;
-import com.stock.orderbook.model.Symbol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,30 +25,12 @@ public class CsvQuoteFileLoader {
     @Value("${quotes.input.csv.file.delimiter}")
     private String CSV_FILE_DELIMITER;
 
-    private final Map<String, List<Quote>> symbolToQuotesMap;
-
-    public CsvQuoteFileLoader(Map<String, List<Quote>> symbolToQuotesMap) {
-        this.symbolToQuotesMap = symbolToQuotesMap;
-    }
-
     @Bean
     public Map<String, List<Quote>> symbolToQuotesMap() throws Exception {
         String csvFilePath = Paths.get(csvFileResource.getURI()).toString();
         log.info("Parsing CSV Quotes File: " + csvFilePath);
 
         return readCsvFile(csvFilePath);
-    }
-
-    @Bean
-    public Map<String, Symbol> symbolMap() {
-        Map<String, Symbol> symbolMap = this.symbolToQuotesMap
-                .entrySet()
-                .stream()
-                .map(mapToSymbol)
-                .collect(Collectors.toMap(Symbol::getSymbol, Function.identity()));
-
-//        symbolMap.forEach(this::buildAsksPerMinuteMap);
-        return symbolMap;
     }
 
     private Map<String, List<Quote>> readCsvFile(String csvFilePath) throws Exception {
@@ -105,15 +86,4 @@ public class CsvQuoteFileLoader {
                 .sipfeed(cols[10])
                 .build();
     };
-
-    private final Function<Map.Entry<String, List<Quote>>, Symbol> mapToSymbol = (entry) -> Symbol.builder()
-            .symbol(entry.getKey())
-            .quotes(entry.getValue())
-            .build();
-
-//    private void buildAsksPerMinuteMap(String symbolName, Symbol symbol) {
-//        List<Quote> quotes = symbol.getQuotes();
-//        Map<String, PriorityQueue<Quote>> asksPerMinuteMap = new LinkedHashMap<>();
-//
-//    }
 }

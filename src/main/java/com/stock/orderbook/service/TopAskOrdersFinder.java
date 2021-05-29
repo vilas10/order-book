@@ -18,7 +18,6 @@ import java.util.PriorityQueue;
 @Component
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
-    private static final String ASKS_PREFIX = "Best Asks: ";
 
     @Value("${top.orders.limit}")
     private Integer TOP_ORDERS_LIMIT;
@@ -38,7 +37,7 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
 
         List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, symbol, timestamp);
 
-        return ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
+        return OutputFormatter.ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
     }
 
     @Override
