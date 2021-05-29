@@ -2,6 +2,7 @@ package com.stock.orderbook.config;
 
 import com.stock.orderbook.model.Quote;
 import com.stock.orderbook.model.Symbol;
+import com.stock.orderbook.utils.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,14 +12,14 @@ import org.springframework.core.io.Resource;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Configuration
 public class CsvQuoteFileLoader {
     private static final Logger log = LoggerFactory.getLogger(CsvQuoteFileLoader.class);
+    public static final String TIMESTAMP_01_JAN_2021 = "2021-01-01T00:00:00";
 
     @Value("classpath:${quotes.input.csv.file}")
     private Resource csvFileResource;
@@ -26,13 +27,9 @@ public class CsvQuoteFileLoader {
     @Value("${quotes.input.csv.file.delimiter}")
     private String CSV_FILE_DELIMITER;
 
-    private final Map<String, List<Quote>> symbolToQuotesMap;
+    @Value("${top.orders.limit}")
+    private Integer TOP_ORDERS_LIMIT;
 
-    public CsvQuoteFileLoader(Map<String, List<Quote>> symbolToQuotesMap) {
-        this.symbolToQuotesMap = symbolToQuotesMap;
-    }
-
-    @Bean
     public Map<String, List<Quote>> symbolToQuotesMap() throws Exception {
         String csvFilePath = Paths.get(csvFileResource.getURI()).toString();
         log.info("Parsing CSV Quotes File: " + csvFilePath);
@@ -40,15 +37,19 @@ public class CsvQuoteFileLoader {
         return readCsvFile(csvFilePath);
     }
 
-    @Bean
-    public Map<String, Symbol> symbolMap() {
-        Map<String, Symbol> symbolMap = this.symbolToQuotesMap
+    @Bean("symbolMap")
+    public Map<String, Symbol> symbolMap() throws Exception {
+        log.info("Building Symbol map");
+        Map<String, List<Quote>> symbolToQuotesMap = symbolToQuotesMap();
+        log.info("symbolToQuotesMap size: {}", symbolToQuotesMap.size());
+        Map<String, Symbol> symbolMap = symbolToQuotesMap
                 .entrySet()
                 .stream()
                 .map(mapToSymbol)
                 .collect(Collectors.toMap(Symbol::getSymbol, Function.identity()));
 
-//        symbolMap.forEach(this::buildAsksPerMinuteMap);
+        log.info("Symbol map size: {}", symbolMap.size());
+        symbolMap.forEach(this::buildOrdersPerSecondMaps);
         return symbolMap;
     }
 
@@ -111,9 +112,55 @@ public class CsvQuoteFileLoader {
             .quotes(entry.getValue())
             .build();
 
-//    private void buildAsksPerMinuteMap(String symbolName, Symbol symbol) {
-//        List<Quote> quotes = symbol.getQuotes();
-//        Map<String, PriorityQueue<Quote>> asksPerMinuteMap = new LinkedHashMap<>();
-//
-//    }
+    private void buildOrdersPerSecondMaps(String symbolName, Symbol symbol) {
+        symbol.setBidsPerSecondMap(new LinkedHashMap<>());
+        symbol.setAsksPerSecondMap(new LinkedHashMap<>());
+        symbol.setQuotesIndex(new HashMap<>());
+
+        List<Quote> quotes = symbol.getQuotes();
+        Map<String, PriorityQueue<Quote>> bidsPerSecondMap = symbol.getBidsPerSecondMap();
+        Map<String, PriorityQueue<Quote>> asksPerSecondMap = symbol.getAsksPerSecondMap();
+        Map<String, Integer> quotesIndex = symbol.getQuotesIndex();
+
+        // Setting initial conditions - Adding zeroth elements
+        PriorityQueue<Quote> bidsQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
+                Comparator.comparing(Quote::getBidPrice).thenComparing(Quote::getStartTime));
+
+        PriorityQueue<Quote> asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
+                Comparator.comparing(Quote::getNegativeAskPrice).thenComparing(Quote::getStartTime));
+
+        bidsPerSecondMap.put(TIMESTAMP_01_JAN_2021, bidsQueue);
+        asksPerSecondMap.put(TIMESTAMP_01_JAN_2021, asksQueue);
+        quotesIndex.put(TIMESTAMP_01_JAN_2021, 0);
+
+        int index = 0;
+        Quote quote = quotes.get(index);
+
+        while (index < quotes.size()) {
+            String currentSecond = CommonUtil.getCurrentSecond(quote.getStartTime());
+            String nextSecondWithMillis = CommonUtil.nextSecondWithMillis(currentSecond);
+
+            while (index < quotes.size() && quote.getStartTime().compareTo(nextSecondWithMillis) <= 0) {
+                if (quote.getEndTime().compareTo(nextSecondWithMillis) > 0) {
+                    asksQueue.add(quote);
+                    if (asksQueue.size() > TOP_ORDERS_LIMIT) {
+                        asksQueue.poll();
+                    }
+
+                    bidsQueue.add(quote);
+                    if (bidsQueue.size() > TOP_ORDERS_LIMIT) {
+                        bidsQueue.poll();
+                    }
+                }
+                index += 1;
+                if (index < quotes.size()) {
+                    quote = quotes.get(index);
+                }
+            }
+
+            bidsPerSecondMap.put(currentSecond, new PriorityQueue<>(bidsQueue));
+            asksPerSecondMap.put(currentSecond, new PriorityQueue<>(asksQueue));
+            quotesIndex.put(currentSecond, index);
+        }
+    }
 }

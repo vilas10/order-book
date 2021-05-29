@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface TopOrdersFinderStrategy {
-    String topOrders(String symbol, String timestamp);
+    String topOrders(String symbolName, String timestamp);
     TopOrdersFinderStrategyType getTopOrderFinderStrategyType();
 }

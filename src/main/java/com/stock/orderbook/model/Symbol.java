@@ -13,6 +13,6 @@ public class Symbol {
     private String symbol;
     private List<Quote> quotes;
     private Map<String, Integer> quotesIndex;
-    private Map<String, PriorityQueue<Quote>> asksPerMinuteMap;
-    private Map<String, PriorityQueue<Quote>> bidsPerMinuteMap;
+    private Map<String, PriorityQueue<Quote>> asksPerSecondMap;
+    private Map<String, PriorityQueue<Quote>> bidsPerSecondMap;
 }

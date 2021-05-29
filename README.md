@@ -1,6 +1,6 @@
 # Stock Order Book
 
-This is an Order Book implementation in SpringBoot.
+This is the implementation for Stock Order Book given the quotes in SpringBoot.
 
 ## Development Environment
 
@@ -76,3 +76,40 @@ much to affect the runtimes.
 | AAPL      | 2021-02-18T10:10:00.000Z   | 61                        |
 | AAPL      | 2021-02-18T10:20:00.000Z   | 118                       |
 | AAPL      | 2021-02-18T10:30:00.000Z   | 184                       |
+
+### Approach #3: Maintain Indexes and Priority Queues for each second
+In this approach, instead of having one ask and bid priority queues, 
+there are multiple queues created that stores best 5 bids/asks at the end of each second.
+Also, indices of input quotes are maintained to only load the data for only the current second
+of the input timestamp. 
+i.e. if request is made for timestamp 2021-02-18T10:10:05.333Z, the quotes are not loaded for all
+the quotes occured before this timestamp. Instead, at the initial load, queues are captured for 
+2021-02-18T10:10:0510:10:05 th second. Hence, only the quotes from 2021-02-18T10:10:05.000Z to 2021-02-18T10:10:05.333Z 
+is loaded on user request. This increases the runtime by more than 50 times.
+
+**Bids Queue** - Min Heap (Maintained max capacity of 5)  
+**Asks Queue** - Max Heap (Maintained max capacity of 5)
+
+| Symbol    | Timestamp                  | Avg. Execution Time (ms)  |
+| --------- |:--------------------------:| -------------------------:|
+| AAPL      | 2021-02-18T10:10:00.000Z   | ~1                        |
+| AAPL      | 2021-02-18T10:20:00.000Z   | ~1                        |
+| AAPL      | 2021-02-18T10:30:00.000Z   | ~1                        |
+
+#### Sample Runs
+```
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:10:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
+book/
+Best Bids: 128.68 (300); 128.68 (100); 128.68 (200); 128.68 (500); 128.68 (100)
+Best Asks: 128.69 (1000); 128.70 (100); 128.70 (300); 128.70 (100); 128.71 (100)
+
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:20:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
+book/
+Best Bids: 128.31 (100); 128.31 (700); 128.31 (300); 128.31 (200); 128.31 (300)
+Best Asks: 128.33 (100); 128.33 (100); 128.33 (700); 128.33 (300); 128.33 (200)
+
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:30:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
+book/
+Best Bids: 128.10 (100); 128.10 (200); 128.10 (200); 128.10 (500); 128.10 (100)
+Best Asks: 128.12 (100); 128.12 (400); 128.12 (200); 128.12 (100); 128.13 (100)
+```
