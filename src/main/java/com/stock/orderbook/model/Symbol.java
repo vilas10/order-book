@@ -6,6 +6,7 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.TreeMap;
 
 @Data
 @Builder
@@ -13,6 +14,6 @@ public class Symbol {
     private String symbol;
     private List<Quote> quotes;
     private Map<String, Integer> quotesIndex;
-    private Map<String, PriorityQueue<Quote>> asksPerSecondMap;
-    private Map<String, PriorityQueue<Quote>> bidsPerSecondMap;
+    private TreeMap<String, PriorityQueue<Quote>> asksCache;
+    private TreeMap<String, PriorityQueue<Quote>> bidsCache;
 }

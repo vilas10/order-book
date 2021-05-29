@@ -1,8 +1,8 @@
 package com.stock.orderbook.model;
 
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 public class OrderBookRequest {
     private String symbol;
     private String timestamp;

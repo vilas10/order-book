@@ -3,13 +3,15 @@ package com.stock.orderbook.service;
 import com.stock.orderbook.model.Quote;
 import com.stock.orderbook.model.Symbol;
 import com.stock.orderbook.model.TopOrdersFinderStrategyType;
-import com.stock.orderbook.utils.CommonUtil;
 import com.stock.orderbook.utils.OutputFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.TreeMap;
 
 /**
  * Asks
@@ -17,6 +19,9 @@ import java.util.*;
 @Component
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
+
+    @Value("${top.orders.limit}")
+    private Integer TOP_ORDERS_LIMIT;
 
     private final TopOrdersFinder topOrdersFinder;
 
@@ -30,27 +35,24 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     @Override
     public String topOrders(String symbolName, String timestamp) {
         log.info("Processing top asks for symbol: {} at timestamp: {}", symbolName, timestamp);
-
         Symbol symbol = symbolMap.get(symbolName);
-        String currentSecond = CommonUtil.getCurrentSecond(timestamp);
-        if (!symbol.getAsksPerSecondMap().containsKey(currentSecond)) {
-            log.info("No Asks found for input timestamp: {}", timestamp);
-            return "No Asks Found";
+
+        TreeMap<String, PriorityQueue<Quote>> asksCache = symbol.getAsksCache();
+        if (asksCache.containsKey(timestamp)) {
+            return OutputFormatter.topAsksFormat(OutputFormatter.getTopOrdersFromQueue(asksCache.get(timestamp),
+                    TOP_ORDERS_LIMIT));
         }
 
-        Set<String> keySet = symbol.getAsksPerSecondMap().keySet();
-        List<String> keyList = new ArrayList<>(keySet);
-        int currentSecondMapIndex = keyList.indexOf(currentSecond);
-        String previousSecond = keyList.get(currentSecondMapIndex-1);
-        PriorityQueue<Quote> asksQueue = new PriorityQueue<>(symbol.getAsksPerSecondMap().get(previousSecond));
-        int quotesStartIndex = symbol.getQuotesIndex().get(previousSecond);
+        String nearestTimestamp = asksCache.floorKey(timestamp);
+        PriorityQueue<Quote> asksQueue = new PriorityQueue<>(symbol.getAsksCache().get(nearestTimestamp));
+        int quotesStartIndex = symbol.getQuotesIndex().get(nearestTimestamp);
 
-        log.info("Finding asks with info: currentSecond: {}, currentSecondMapIndex: {}, previousSecond: {}, " +
-                "quotesStartIndex: {}", currentSecond, currentSecondMapIndex, previousSecond, quotesStartIndex);
+        log.info("Finding asks with info: timestamp: {}, nearestTimestamp: {}, " +
+                "quotesStartIndex: {}", timestamp, nearestTimestamp, quotesStartIndex);
 
-        List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, quotesStartIndex, symbolName, timestamp);
-
-        return OutputFormatter.ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
+        PriorityQueue<Quote> topOrdersQueue = topOrdersFinder.findTopOrders(asksQueue, quotesStartIndex, symbol, timestamp);
+        asksCache.put(timestamp, topOrdersQueue);
+        return OutputFormatter.topAsksFormat(OutputFormatter.getTopOrdersFromQueue(topOrdersQueue, TOP_ORDERS_LIMIT));
     }
 
     @Override

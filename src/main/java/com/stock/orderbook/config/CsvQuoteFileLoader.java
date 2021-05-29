@@ -2,7 +2,6 @@ package com.stock.orderbook.config;
 
 import com.stock.orderbook.model.Quote;
 import com.stock.orderbook.model.Symbol;
-import com.stock.orderbook.utils.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,9 +9,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,7 +59,8 @@ public class CsvQuoteFileLoader {
                 .collect(Collectors.toMap(Symbol::getSymbol, Function.identity()));
 
         log.info("Symbol map size: {}", symbolMap.size());
-        symbolMap.forEach(this::buildOrdersPerSecondMaps);
+        symbolMap.forEach(this::initializeCache);
+
         return symbolMap;
     }
 
@@ -110,57 +121,20 @@ public class CsvQuoteFileLoader {
     private final Function<Map.Entry<String, List<Quote>>, Symbol> mapToSymbol = (entry) -> Symbol.builder()
             .symbol(entry.getKey())
             .quotes(entry.getValue())
+            .asksCache(new TreeMap<>())
+            .bidsCache(new TreeMap<>())
+            .quotesIndex(new HashMap<>())
             .build();
 
-    private void buildOrdersPerSecondMaps(String symbolName, Symbol symbol) {
-        symbol.setBidsPerSecondMap(new LinkedHashMap<>());
-        symbol.setAsksPerSecondMap(new LinkedHashMap<>());
-        symbol.setQuotesIndex(new HashMap<>());
-
-        List<Quote> quotes = symbol.getQuotes();
-        Map<String, PriorityQueue<Quote>> bidsPerSecondMap = symbol.getBidsPerSecondMap();
-        Map<String, PriorityQueue<Quote>> asksPerSecondMap = symbol.getAsksPerSecondMap();
-        Map<String, Integer> quotesIndex = symbol.getQuotesIndex();
-
-        // Setting initial conditions - Adding zeroth elements
+    private void initializeCache(String symbolName, Symbol symbol) {
         PriorityQueue<Quote> bidsQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
-                Comparator.comparing(Quote::getBidPrice).thenComparing(Quote::getStartTime));
+                Comparator.comparing(Quote::getNegativeBidPrice).thenComparing(Quote::getStartTime));
 
         PriorityQueue<Quote> asksQueue = new PriorityQueue<>(TOP_ORDERS_LIMIT,
-                Comparator.comparing(Quote::getNegativeAskPrice).thenComparing(Quote::getStartTime));
+                Comparator.comparing(Quote::getAskPrice).thenComparing(Quote::getStartTime));
 
-        bidsPerSecondMap.put(TIMESTAMP_01_JAN_2021, bidsQueue);
-        asksPerSecondMap.put(TIMESTAMP_01_JAN_2021, asksQueue);
-        quotesIndex.put(TIMESTAMP_01_JAN_2021, 0);
-
-        int index = 0;
-        Quote quote = quotes.get(index);
-
-        while (index < quotes.size()) {
-            String currentSecond = CommonUtil.getCurrentSecond(quote.getStartTime());
-            String nextSecondWithMillis = CommonUtil.nextSecondWithMillis(currentSecond);
-
-            while (index < quotes.size() && quote.getStartTime().compareTo(nextSecondWithMillis) <= 0) {
-                if (quote.getEndTime().compareTo(nextSecondWithMillis) > 0) {
-                    asksQueue.add(quote);
-                    if (asksQueue.size() > TOP_ORDERS_LIMIT) {
-                        asksQueue.poll();
-                    }
-
-                    bidsQueue.add(quote);
-                    if (bidsQueue.size() > TOP_ORDERS_LIMIT) {
-                        bidsQueue.poll();
-                    }
-                }
-                index += 1;
-                if (index < quotes.size()) {
-                    quote = quotes.get(index);
-                }
-            }
-
-            bidsPerSecondMap.put(currentSecond, new PriorityQueue<>(bidsQueue));
-            asksPerSecondMap.put(currentSecond, new PriorityQueue<>(asksQueue));
-            quotesIndex.put(currentSecond, index);
-        }
+        symbol.getBidsCache().put(TIMESTAMP_01_JAN_2021, bidsQueue);
+        symbol.getAsksCache().put(TIMESTAMP_01_JAN_2021, asksQueue);
+        symbol.getQuotesIndex().put(TIMESTAMP_01_JAN_2021, 0);
     }
 }

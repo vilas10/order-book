@@ -30,8 +30,4 @@ public class Quote {
     public Double getNegativeBidPrice() {
         return -this.bidPrice;
     }
-
-    public Double getNegativeAskPrice() {
-        return -this.askPrice;
-    }
 }

@@ -3,17 +3,22 @@ package com.stock.orderbook.service;
 import com.stock.orderbook.model.Quote;
 import com.stock.orderbook.model.Symbol;
 import com.stock.orderbook.model.TopOrdersFinderStrategyType;
-import com.stock.orderbook.utils.CommonUtil;
 import com.stock.orderbook.utils.OutputFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.TreeMap;
 
 @Component
 public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopBidOrdersFinder.class);
+
+    @Value("${top.orders.limit}")
+    private Integer TOP_ORDERS_LIMIT;
 
     private final TopOrdersFinder topOrdersFinder;
 
@@ -28,23 +33,26 @@ public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
         log.info("Processing top bids for symbol: {} at timestamp: {}", symbolName, timestamp);
 
         Symbol symbol = symbolMap.get(symbolName);
-        String currentSecond = CommonUtil.getCurrentSecond(timestamp);
-        if (!symbol.getBidsPerSecondMap().containsKey(currentSecond)) {
-            log.info("No Bids found for input timestamp: {}", timestamp);
-            return "No Bids Found";
+
+        TreeMap<String, PriorityQueue<Quote>> bidsCache = symbol.getBidsCache();
+        if (bidsCache.containsKey(timestamp)) {
+            log.info("Request found in cache - returning result from cache");
+            return OutputFormatter.topBidsFormat(OutputFormatter.getTopOrdersFromQueue(
+                    bidsCache.get(timestamp), TOP_ORDERS_LIMIT));
         }
 
-        Set<String> keySet = symbol.getBidsPerSecondMap().keySet();
-        List<String> keyList = new ArrayList<>(keySet);
-        int currentSecondMapIndex = keyList.indexOf(currentSecond);
-        String previousSecond = keyList.get(currentSecondMapIndex-1);
-        PriorityQueue<Quote> bidsQueue = new PriorityQueue<>(symbol.getBidsPerSecondMap().get(previousSecond));
-        int quotesStartIndex = symbol.getQuotesIndex().get(previousSecond);
-        log.info("Finding top bids with info: currentSecond: {}, currentSecondMapIndex: {}, previousSecond: {}, " +
-                "quotesStartIndex: {}", currentSecond, currentSecondMapIndex, previousSecond, quotesStartIndex);
-        List<Quote> topBids = topOrdersFinder.findTopOrders(bidsQueue, quotesStartIndex, symbolName, timestamp);
+        log.info("Request not found in cache - finding top orders for request");
+        String nearestTimestamp = bidsCache.floorKey(timestamp);
+        PriorityQueue<Quote> bidsQueue = new PriorityQueue<>(symbol.getBidsCache().get(nearestTimestamp));
+        int quotesStartIndex = symbol.getQuotesIndex().get(nearestTimestamp);
 
-        return OutputFormatter.BIDS_PREFIX + OutputFormatter.toString(topBids, Quote::bidOutputFormat);
+        log.info("Finding bids with info: timestamp: {}, nearestTimestamp: {}, " +
+                "quotesStartIndex: {}", timestamp, nearestTimestamp, quotesStartIndex);
+        PriorityQueue<Quote> topOrdersQueue = topOrdersFinder.findTopOrders(bidsQueue, quotesStartIndex, symbol, timestamp);
+        log.debug("Previous Cache Record: {}, New record: {}", new PriorityQueue<>(bidsQueue),
+                new PriorityQueue<>(topOrdersQueue));
+        bidsCache.put(timestamp, topOrdersQueue);
+        return OutputFormatter.topBidsFormat(OutputFormatter.getTopOrdersFromQueue(topOrdersQueue, TOP_ORDERS_LIMIT));
     }
 
     @Override
