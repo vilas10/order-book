@@ -17,7 +17,6 @@ import java.util.*;
 @Component
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     private static final Logger log = LoggerFactory.getLogger(TopAskOrdersFinder.class);
-    private static final String ASKS_PREFIX = "Best Asks: ";
 
     private final TopOrdersFinder topOrdersFinder;
 
@@ -51,7 +50,7 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
 
         List<Quote> topAsks = topOrdersFinder.findTopOrders(asksQueue, quotesStartIndex, symbolName, timestamp);
 
-        return ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
+        return OutputFormatter.ASKS_PREFIX + OutputFormatter.toString(topAsks, Quote::askOutputFormat);
     }
 
     @Override

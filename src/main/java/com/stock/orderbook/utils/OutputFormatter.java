@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class OutputFormatter {
     public static final String DELIMITER = "; ";
+    public static final String ASKS_PREFIX = "Best Asks: ";
+    public static final String BIDS_PREFIX = "Best Bids: ";
 
     /**
      * Converts list of quotes to string according to outputFormat provided
