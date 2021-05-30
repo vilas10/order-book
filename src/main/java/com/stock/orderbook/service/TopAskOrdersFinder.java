@@ -14,9 +14,9 @@ import java.util.PriorityQueue;
 import java.util.TreeMap;
 
 /**
- * TopAskOrdersFinder implements the TopOrdersFinderStrategy for Asks strategy orderType.
- * - Implements topOrders method to find top ask orders
- * - Implements getStrategyOrderType method to return asks order type
+ * TopAskOrdersFinder implements the TopOrdersFinderStrategy for Asks strategy orderType. <br>
+ * - Implements topOrders method to find top ask orders <br>
+ * - Implements getStrategyOrderType method to return asks order type <br>
  */
 @Component
 public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
@@ -35,12 +35,12 @@ public class TopAskOrdersFinder implements TopOrdersFinderStrategy {
     }
 
     /**
-     * topOrders method performs following steps in finding top ask orders
-     * 1. Checks if the timestamp is already in asksCache. If so, returns already calculated top asks
+     * topOrders method performs following steps in finding top ask orders <br>
+     * 1. Checks if the timestamp is already in asksCache. If so, returns already calculated top asks <br>
      * 2. If not, finds the floorKey timestamp (i.e. greatest timestamp less than input timestamp) and calculates the
-     * top asks
-     * 3. Caches the top asks result in asksCache for the input timestamp
-     * 4. Returns the top asks in required output format using OutputFormatter
+     * top asks <br>
+     * 3. Caches the top asks result in asksCache for the input timestamp <br>
+     * 4. Returns the top asks in required output format using OutputFormatter <br>
      * @param symbolName - name of the symbol for which the top orders to be calculated
      * @param timestamp - time at which the top orders to be calculated
      * @return String - returns formatted string with top 5 asks

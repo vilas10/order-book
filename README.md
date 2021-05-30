@@ -45,7 +45,7 @@ Request:
 curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:10:10.522Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/orderbook/
 
 Response:
-Best Bids: 129.13 (200); 128.74 (200); 128.73 (100); 128.73 (100); 128.73 (400)
+Best Bids: 128.60 (400); 128.60 (200); 128.59 (600); 128.59 (500); 128.59 (400)
 Best Asks: 128.61 (200); 128.61 (5100); 128.61 (300); 128.62 (500); 128.62 (600)
 ```
 
@@ -62,52 +62,67 @@ Best Asks: 128.61 (200); 128.61 (5100); 128.61 (300); 128.62 (500); 128.62 (600)
 **Note:** This approach is developed as improvements over the 3 approaches developed prior to this. 
 Please see below *Other Approaches and Runtimes* section for the details.
 
-### Approach #4: Caching Previously Calculated Queues
+### Approach #4: Cache on the Fly - Caching Previously Evaluated Queues
 In this approach, previously calculated intermediate queues are cached for future requests. Please see steps below.
-**Step 1: Parsing and storing CSV quotes file content**
+
+#### Step 1: Parsing and storing CSV quotes file content
 1. CSV quotes file is read and stored in symbolToQuotesMap separated by symbols. 
 2. For each symbol in symbolToQuotesMap, a Symbol object is initialized with bidsCache, asksCache and quotesIndex.
 3. bidsCache and asksCache are TreeMaps between timestamp to PriorityQueue.
    For bids PriorityQueue, negative bid price is used to simulate MaxHeap to get best bids.
    For asks PriorityQueue, ask price is used to simulate the MinHeap to get best asks.
    TreeMaps are used for caching for faster retrieval and for floorKey functionality. More on floorKey below.
-**Step 2: Handling POST request**
+
+#### Step 2: Handling POST request
 1. User requests top bids and asks for a symbol at a particular timestamp.
 2. If current symbol and timestamp is already processed, result is returned from cache.
-3. If not, using floorKey functionality in TreeMap, the previously processed timestamp
+3. If not, using floorKey functionality in TreeMap, the previously processed nearestTimestamp.
+4. Using the nearestTimestamp, corresponding bidsQueue/asksQueue is retrieved from bidsCache/asksCache respectively.
+5. Similarly, using nearestTimestamp, corresponding quotesStartIndex is retrieved for further processing of quotes.
+6. Using these bidsQueue/asksQueue, quotesStartIndex, and input timestamp, inactive quotes are removed.
+   Also, further quotes are added which are active into the queue and updated topOrdersQueue is returned.
+7. Last index of quotes loaded is stored in quotesIndex map corresponding to timestamp. 
+8. This topOrdersQueue is further processed by OutputFormatter to return output in required format.
 
 ### Complexities
-S = number of symbols
-Ns = number of quotes for each symbol
-N = total quotes i.e. S * Ns
+S = number of symbols  
+Ns = number of quotes for each symbol 
+N = total quotes i.e. S * Ns  
+Q = number of quotes in a queue  
+T = number of elements in TreeMap (depends on number of requests)  
+
 #### Runtime Complexity
-*Step 1:* 
-- O(N) to read all quotes where n in size of quotes file
-- O(S) to initialize symbol objects
+**Step 1:** *O(N + S)* 
+- O(N) - To read N quotes where n in size of quotes file
+- O(S) - To initialize S symbol objects
 
+**Step 2:** *O(logT + NlogQ)*
+- O(1) - To validate the symbol in HashMap
+- O(logT) - To search in TreeMap if timestamp exists and get floorKey
+- O(logQ) - To remove inactive quotes in bidQueue/askQueue
+- O(NlogQ) - To add new quotes until requested timestamp
+- O(1) - To insert record in quotesIndex hashmap
 
+#### Space Complexity
+**Step 1:** *O(N + S)*
+- To read N quotes where n in size of quotes file
+- To initialize S symbol objects
 
-i.e. if request is made for timestamp 2021-02-18T10:10:05.333Z, the quotes are not loaded for all
-the quotes occured before this timestamp. Instead, at the initial load, queues are captured for
-2021-02-18T10:10:05 th second. Hence, only the quotes from 2021-02-18T10:10:05.000Z to 2021-02-18T10:10:05.333Z
-is loaded on user request. This increases the runtime by more than 50 times.
+**Step 2:** *O(T\*Q)*
+- O(T) - For maintaining quotesIndex HashMap for each request
+- O(T*Q) - For maintaining bidQueue/askQueue in cache for each request
 
-**Bids Queue** - Min Heap (Maintained max capacity of 5)  
-**Asks Queue** - Max Heap (Maintained max capacity of 5)
+#### Runtimes
+As you can see the runtimes below, first time request takes ~60ms and subsequent ones takes no time.  
+Also, compared to Approach #2, the second and third requests took less time.  
+Because, program retrieves the previously cached output at previous request and process only remaining requests.
+As more and more requests come in, the execution times reduces because the cache is built.
 
-| Symbol    | Timestamp                  | Avg. Execution Time (ms)  |
-| --------- |:--------------------------:| -------------------------:|
-| AAPL      | 2021-02-18T10:10:00.000Z   | ~1                        |
-| AAPL      | 2021-02-18T10:20:00.000Z   | ~1                        |
-| AAPL      | 2021-02-18T10:30:00.000Z   | ~1                        |
-
-## Other Design Considerations
-
-### 1. On Demand (Lazy) Data Loading
-
-In the current implementation, the provided input file is loaded into memory for faster access. If the data is too
-large, then data could be loaded on request from user for top bids/asks. Drawback of this approach is that user might
-get a delayed response.
+| Symbol    | Timestamp                  |  (First) Execution Time (ms) | (Subsequent) Execution Time (ms) |
+| --------- |:--------------------------:| ----------------------------:|---------------------------------:|
+| AAPL      | 2021-02-18T10:10:00.000Z   | 65                           |<1                                |
+| AAPL      | 2021-02-18T10:20:00.000Z   | 61                           |<1                                |
+| AAPL      | 2021-02-18T10:30:00.000Z   | 60                           |<1                                |
 
 ## Other Approaches and Runtimes
 
@@ -140,7 +155,7 @@ much to affect the runtimes.
 | AAPL      | 2021-02-18T10:20:00.000Z   | 118                       |
 | AAPL      | 2021-02-18T10:30:00.000Z   | 184                       |
 
-### Approach #3: Maintain Indexes and Priority Queues for each second
+### Approach #3: Pre-Cache Per Second - Maintain Indexes and Priority Queues for each second
 In this approach, instead of having one ask and bid priority queues, 
 there are multiple queues created that stores best 5 bids/asks at the end of each second.
 Also, indices of input quotes are maintained to only load the data for only the current second
@@ -160,7 +175,28 @@ is loaded on user request. This increases the runtime by more than 50 times.
 | AAPL      | 2021-02-18T10:20:00.000Z   | ~1                        |
 | AAPL      | 2021-02-18T10:30:00.000Z   | ~1                        |
 
-#### Sample Runs
+## Other Design Considerations
+
+### 1. On Demand (Lazy) Data Loading
+
+In all the approaches, the provided input file is loaded into memory for faster access. If the data is too
+large, then storing in memory is not possible.
+Hence, the data should be loaded based on the request from user for top bids/asks.
+In
+- Drawback of this approach is that user might get a delayed response in some approaches (Approach #2).
+
+### 2. Approach #3 vs Approach #4
+Both these approaches are optimized and runtimes are very fast.
+
+| Comparison | Approach #3 - Pre-Cache Per Second                    | Approach #4 - Cache On the Fly                  |
+| ---------- |:-----------------------------------------------------:| -----------------------------------------------:|
+| Setup      | One-Time initial setup time to create caches          | Not much initial setup                          |
+| Runtime    | Almost constant as cache is done on each second       | Varies by time gap between requests             |
+| Space      | Depends on number of pre-caches (number of seconds)   | Depends on number of requests                   |
+| Advantages | Takes constant time                                   | No pre-setup time                               |
+| Drawbacks  | Pre-setup time, some caches may not be used           | First requests could take time                  |
+
+## Sample Runs
 ```
 curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:10:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
 book/
@@ -177,9 +213,15 @@ book/
 Best Bids: 128.10 (100); 128.10 (200); 128.10 (200); 128.10 (100); 128.10 (500)
 Best Asks: 128.12 (100); 128.12 (400); 128.12 (200); 128.12 (100); 128.13 (100)
 
-# Empty output when no active records are available.
-curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2021-02-18T10:40:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
+# No bids found output when no active records are available. (Year 2022)
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2022-02-18T10:40:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
 book/
-Best Bids:
-Best Asks:
+Best Bids: No bids found.
+Best Asks: No bids found.
+
+# If provided timestamp is too old (Year 2020)
+curl -d "{\"symbol\":\"AAPL\",\"timestamp\":\"2020-02-18T10:40:00.000Z\"}" -H "Content-Type: application/json" -X POST http://localhost:8080/order
+book/
+Best Bids: Too old timestamp provided. No bids found.
+Best Asks: Too old timestamp provided. No bids found.
 ```

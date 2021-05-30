@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * RequestValidatorImpl for validating the input request for valid parameters
+ * RequestValidatorImpl for validating the input request for valid parameters <br>
  */
 @Service
 public class RequestValidatorImpl implements RequestValidator {

@@ -15,8 +15,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * OrderBookController Rest Controller Class.
- * - Creates endpoints for and directs requests to appropriate strategy implementations
+ * OrderBookController Rest Controller Class. <br>
+ * - Creates endpoints for and directs requests to appropriate strategy implementations <br>
  */
 @RestController
 public class OrderBookController {

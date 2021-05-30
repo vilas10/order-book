@@ -27,10 +27,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * CsvQuoteFileLoader class is used to perform the following actions.
- * - Read the input CSV file that contains quotes
- * - Group all the quotes into symbolToQuotesMap
- * - Load the Symbol objects for each symbol associated into symbolMap
+ * CsvQuoteFileLoader class is used to perform the following actions. <br>
+ * - Read the input CSV file that contains quotes <br>
+ * - Group all the quotes into symbolToQuotesMap <br>
+ * - Load the Symbol objects for each symbol associated into symbolMap <br>
  */
 @Configuration
 public class CsvQuoteFileLoader {

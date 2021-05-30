@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * TopOrdersFinder contains the logic for finding the top orders in a given priority queue.
- * This is the common implementation for both asks and bids.
+ * TopOrdersFinder contains the logic for finding the top orders in a given priority queue. <br>
+ * This is the common implementation for both asks and bids. <br>
  */
 @Component
 public class TopOrdersFinder {

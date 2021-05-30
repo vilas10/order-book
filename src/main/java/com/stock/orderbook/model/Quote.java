@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Quote Pojo
- * The fields in the class are present in input CSV quotes file.
- * Each Quote object is created of each line in CSV quotes file.
+ * Quote Pojo  <br>
+ * The fields in the class are present in input CSV quotes file. <br>
+ * Each Quote object is created of each line in CSV quotes file. <br>
  */
 @Data
 @Builder

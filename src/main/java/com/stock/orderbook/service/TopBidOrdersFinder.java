@@ -14,9 +14,9 @@ import java.util.PriorityQueue;
 import java.util.TreeMap;
 
 /**
- * TopBidOrdersFinder implements the TopOrdersFinderStrategy for BIDS strategy orderType.
- * - Implements topOrders method to find top ask orders
- * - Implements getStrategyOrderType method to return asks order type
+ * TopBidOrdersFinder implements the TopOrdersFinderStrategy for BIDS strategy orderType. <br>
+ * - Implements topOrders method to find top ask orders <br>
+ * - Implements getStrategyOrderType method to return asks order type <br>
  */
 @Component
 public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
@@ -35,12 +35,12 @@ public class TopBidOrdersFinder implements TopOrdersFinderStrategy {
     }
 
     /**
-     * topOrders method performs following steps in finding top bid orders
-     * 1. Checks if the timestamp is already in bidsCache. If so, returns already calculated top bids
+     * topOrders method performs following steps in finding top bid orders <br>
+     * 1. Checks if the timestamp is already in bidsCache. If so, returns already calculated top bids <br>
      * 2. If not, finds the floorKey timestamp (i.e. greatest timestamp less than input timestamp) and calculates the
-     * top bids
-     * 3. Caches the top bids result in bidsCache for the input timestamp
-     * 4. Returns the top bids in required output format using OutputFormatter
+     * top bids <br>
+     * 3. Caches the top bids result in bidsCache for the input timestamp <br>
+     * 4. Returns the top bids in required output format using OutputFormatter <br>
      * @param symbolName - name of the symbol for which the top orders to be calculated
      * @param timestamp - time at which the top orders to be calculated
      * @return String - returns formatted string with top 5 bids

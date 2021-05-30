@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * TopOrderFinderStrategyFactory class performs following actions.
- * - Creates the Map of various strategies i.e. a map to two strategies to handle top Bids and top Asks.
+ * TopOrderFinderStrategyFactory class performs following actions. <br>
+ * - Creates the Map of various strategies i.e. a map to two strategies to handle top Bids and top Asks. <br>
  */
 @Component
 public class TopOrderFinderStrategyFactory {

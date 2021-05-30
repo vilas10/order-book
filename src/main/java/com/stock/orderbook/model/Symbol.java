@@ -16,29 +16,29 @@ import java.util.TreeMap;
 @Builder
 public class Symbol {
     /**
-     * symbol - Name of the symbol
+     * symbol - Name of the symbol <br>
      */
     private String symbol;
     /**
-     * quotes - List of quotes associated with symbol
+     * quotes - List of quotes associated with symbol <br>
      */
     private List<Quote> quotes;
     /**
-     * quotesIndex - Hashmap
-     * key - timestamp
-     * Integer - Index of timestamp equalling the start time in csv file
+     * quotesIndex - Hashmap <br>
+     * key - timestamp <br>
+     * Integer - Index of timestamp equalling the start time in csv file <br>
      */
     private Map<String, Integer> quotesIndex;
     /**
-     * asksCache - A treemap to store the timestamps and priority queues
-     * key - String timestamp
-     * value - Priority Queue of asks at that timestamp
+     * asksCache - A treemap to store the timestamps and priority queues <br>
+     * key - String timestamp <br>
+     * value - Priority Queue of asks at that timestamp <br>
      */
     private TreeMap<String, PriorityQueue<Quote>> asksCache;
     /**
-     * bidsCache - A treemap to store the timestamps and priority queues
-     * key - String timestamp
-     * value - Priority Queue of bids at that timestamp
+     * bidsCache - A treemap to store the timestamps and priority queues <br>
+     * key - String timestamp <br>
+     * value - Priority Queue of bids at that timestamp <br>
      */
     private TreeMap<String, PriorityQueue<Quote>> bidsCache;
 }
