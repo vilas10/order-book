@@ -1,6 +1,10 @@
 package com.stock.orderbook.model;
 
-public enum TopOrdersFinderStrategyType {
+/**
+ * OrderType
+ *
+ */
+public enum OrderType {
     BIDS,
     ASKS
 }

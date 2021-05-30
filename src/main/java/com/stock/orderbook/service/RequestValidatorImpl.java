@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+/**
+ * RequestValidatorImpl for validating the input request for valid parameters
+ */
 @Service
 public class RequestValidatorImpl implements RequestValidator {
     private static final Logger log = LoggerFactory.getLogger(RequestValidatorImpl.class);
@@ -17,13 +20,19 @@ public class RequestValidatorImpl implements RequestValidator {
         this.symbolMap = symbolMap;
     }
 
+    /**
+     * Validates the symbol passed in request
+     * @param symbol - input symbol
+     * @return String - Returns empty string if symbol is valid else returns invalidSymbolResponse.
+     */
     @Override
     public String validateSymbol(String symbol) {
-        if (!symbolMap.containsKey(symbol)) {
-            String invalidSymbolResponse = String.format("Invalid Request: \"%s\" is not a valid symbol", symbol);
-            log.error(invalidSymbolResponse);
-            return invalidSymbolResponse;
+        if (symbolMap.containsKey(symbol)) {
+            return "";
         }
-        return "";
+
+        String invalidSymbolResponse = String.format("Request validation failed: '%s' symbol is not valid", symbol);
+        log.error(invalidSymbolResponse);
+        return invalidSymbolResponse;
     }
 }

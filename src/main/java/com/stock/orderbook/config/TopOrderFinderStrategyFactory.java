@@ -1,6 +1,6 @@
 package com.stock.orderbook.config;
 
-import com.stock.orderbook.model.TopOrdersFinderStrategyType;
+import com.stock.orderbook.model.OrderType;
 import com.stock.orderbook.service.TopOrdersFinderStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -9,18 +9,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * TopOrderFinderStrategyFactory class performs following actions.
+ * - Creates the Map of various strategies i.e. a map to two strategies to handle top Bids and top Asks.
+ */
 @Component
 public class TopOrderFinderStrategyFactory {
-    private final Map<TopOrdersFinderStrategyType, TopOrdersFinderStrategy> topOrdersFinderStrategies;
+    private final Map<OrderType, TopOrdersFinderStrategy> topOrdersFinderStrategies;
 
     @Autowired
     public TopOrderFinderStrategyFactory(Set<TopOrdersFinderStrategy> strategySet) {
         topOrdersFinderStrategies = new HashMap<>();
         strategySet.forEach(
-                strategy -> topOrdersFinderStrategies.put(strategy.getTopOrderFinderStrategyType(), strategy));
+                strategy -> topOrdersFinderStrategies.put(strategy.getStrategyOrderType(), strategy));
     }
 
-    public TopOrdersFinderStrategy findStrategy(TopOrdersFinderStrategyType strategyName) {
-        return topOrdersFinderStrategies.get(strategyName);
+    public TopOrdersFinderStrategy findStrategy(OrderType orderType) {
+        return topOrdersFinderStrategies.get(orderType);
     }
 }

@@ -4,6 +4,11 @@ import com.stock.orderbook.utils.OutputFormatter;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * Quote Pojo
+ * The fields in the class are present in input CSV quotes file.
+ * Each Quote object is created of each line in CSV quotes file.
+ */
 @Data
 @Builder
 public class Quote {
